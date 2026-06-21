@@ -1,0 +1,874 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="MediMate">
+<title>MediMate — Care Management</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --teal:#1D9E75;--teal-light:#E1F5EE;--teal-mid:#5DCAA5;--teal-dark:#0F6E56;
+  --blue:#378ADD;--blue-light:#E6F1FB;--blue-dark:#185FA5;
+  --amber:#BA7517;--amber-light:#FAEEDA;--amber-dark:#854F0B;
+  --red:#E24B4A;--red-light:#FCEBEB;--red-dark:#A32D2D;
+  --green:#639922;--green-light:#EAF3DE;--green-dark:#3B6D11;
+  --purple:#7F77DD;--purple-light:#EEEDFE;--purple-dark:#534AB7;
+  --bg:#F7F8FA;--surface:#FFFFFF;--border:#E2E4E9;--border2:#C8CBD4;
+  --text:#1A1D23;--text2:#5A5E6B;--text3:#9196A4;
+  --radius:10px;--radius-lg:14px;--radius-xl:18px;
+}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--text);font-size:15px;min-height:100vh}
+button{cursor:pointer;font-family:inherit;font-size:14px}
+input,select,textarea{font-family:inherit;font-size:14px;width:100%;padding:9px 12px;border:1px solid var(--border);border-radius:var(--radius);background:var(--surface);color:var(--text);outline:none}
+input:focus,select:focus,textarea:focus{border-color:var(--teal-mid);box-shadow:0 0 0 3px rgba(29,158,117,0.1)}
+textarea{resize:vertical;min-height:80px}
+label{display:block;font-size:12px;font-weight:600;color:var(--text2);margin-bottom:5px;text-transform:uppercase;letter-spacing:0.4px}
+.nav{background:var(--surface);border-bottom:1px solid var(--border);padding:0;position:sticky;top:0;z-index:100}
+.nav-inner{max-width:900px;margin:0 auto;display:flex;align-items:center;gap:0;padding:0 16px}
+.nav-logo{display:flex;align-items:center;gap:8px;font-weight:700;font-size:16px;color:var(--teal-dark);padding:14px 0;margin-right:16px;flex-shrink:0}
+.nav-logo-icon{width:28px;height:28px;background:var(--teal-light);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:15px}
+.nav-tabs{display:flex;gap:0;overflow-x:auto;flex:1}
+.nav-tab{padding:16px 14px;font-size:13px;font-weight:500;color:var(--text2);border:none;background:transparent;border-bottom:2px solid transparent;white-space:nowrap;transition:color 0.15s}
+.nav-tab:hover{color:var(--text)}
+.nav-tab.active{color:var(--teal-dark);border-bottom-color:var(--teal)}
+.page{display:none;max-width:900px;margin:0 auto;padding:20px 16px 40px}
+.page.active{display:block}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:16px 18px;margin-bottom:12px}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border-radius:var(--radius);border:1px solid var(--border2);background:var(--surface);color:var(--text);font-weight:500;transition:background 0.1s}
+.btn:hover{background:var(--bg)}
+.btn-primary{background:var(--teal);border-color:var(--teal);color:#fff}
+.btn-primary:hover{background:var(--teal-dark);border-color:var(--teal-dark)}
+.btn-sm{padding:5px 11px;font-size:13px}
+.btn-icon{width:32px;height:32px;padding:0;display:inline-flex;align-items:center;justify-content:center;border-radius:var(--radius);border:1px solid var(--border);background:transparent;color:var(--text2)}
+.btn-icon:hover{background:var(--bg);color:var(--text)}
+.btn-icon.danger:hover{background:var(--red-light);color:var(--red-dark);border-color:#F09595}
+.badge{display:inline-flex;align-items:center;padding:3px 9px;border-radius:99px;font-size:12px;font-weight:600}
+.badge-green{background:var(--green-light);color:var(--green-dark)}
+.badge-amber{background:var(--amber-light);color:var(--amber-dark)}
+.badge-red{background:var(--red-light);color:var(--red-dark)}
+.badge-blue{background:var(--blue-light);color:var(--blue-dark)}
+.badge-teal{background:var(--teal-light);color:var(--teal-dark)}
+.badge-gray{background:#F1EFE8;color:#5F5E5A}
+.stat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin-bottom:20px}
+.stat-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:14px 16px}
+.stat-label{font-size:12px;color:var(--text3);font-weight:500;margin-bottom:4px}
+.stat-val{font-size:26px;font-weight:700;color:var(--text)}
+.stat-val.green{color:var(--teal-dark)}
+.stat-val.amber{color:var(--amber-dark)}
+.stat-val.red{color:var(--red-dark)}
+.section-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;margin-top:24px}
+.section-title{font-size:14px;font-weight:700;color:var(--text);text-transform:uppercase;letter-spacing:0.5px}
+.client-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:20px}
+.client-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:14px;cursor:pointer;transition:border-color 0.15s;text-align:center}
+.client-card:hover{border-color:var(--teal-mid)}
+.client-card.active{border-color:var(--teal);box-shadow:0 0 0 3px rgba(29,158,117,0.12)}
+.client-avatar{width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:16px;margin:0 auto 8px}
+.client-name{font-size:14px;font-weight:600;color:var(--text)}
+.client-sub{font-size:12px;color:var(--text3);margin-top:2px}
+.med-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:14px 16px;margin-bottom:8px}
+.med-row{display:flex;align-items:flex-start;gap:12px}
+.med-color-bar{width:4px;border-radius:4px;min-height:40px;align-self:stretch;flex-shrink:0}
+.med-info{flex:1;min-width:0}
+.med-name{font-size:15px;font-weight:600;color:var(--text)}
+.med-detail{font-size:13px;color:var(--text2);margin-top:2px}
+.med-times{display:flex;gap:6px;margin-top:10px;flex-wrap:wrap}
+.time-pill{padding:5px 11px;border-radius:99px;border:1px solid var(--border);font-size:13px;font-weight:500;color:var(--text2);background:var(--bg);cursor:pointer;display:inline-flex;align-items:center;gap:5px;transition:all 0.1s}
+.time-pill:hover{border-color:var(--teal-mid)}
+.time-pill.given{background:var(--teal-light);border-color:var(--teal-mid);color:var(--teal-dark)}
+.time-pill.refused{background:var(--amber-light);border-color:#EF9F27;color:var(--amber-dark)}
+.time-pill.missed{background:var(--red-light);border-color:#F09595;color:var(--red-dark)}
+.time-pill.held{background:var(--blue-light);border-color:#85B7EB;color:var(--blue-dark)}
+.med-actions{display:flex;gap:6px;flex-shrink:0}
+.log-table{width:100%;border-collapse:collapse}
+.log-table th{font-size:12px;font-weight:600;color:var(--text3);text-align:left;padding:6px 10px;text-transform:uppercase;letter-spacing:0.4px;border-bottom:1px solid var(--border)}
+.log-table td{padding:10px 10px;font-size:13px;color:var(--text);border-bottom:1px solid var(--border)}
+.log-table tr:last-child td{border-bottom:none}
+.log-table tr:hover td{background:var(--bg)}
+.incident-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:14px 16px;margin-bottom:8px;border-left:4px solid var(--red)}
+.incident-card.resolved{border-left-color:var(--teal)}
+.note-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:14px 16px;margin-bottom:8px}
+.note-meta{font-size:12px;color:var(--text3)}
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:200;align-items:center;justify-content:center;padding:16px}
+.modal-overlay.open{display:flex}
+.modal{background:var(--surface);border-radius:var(--radius-xl);padding:24px;width:100%;max-width:480px;max-height:90vh;overflow-y:auto}
+.modal-title{font-size:17px;font-weight:700;color:var(--text);margin-bottom:18px}
+.modal-footer{display:flex;justify-content:flex-end;gap:8px;margin-top:20px;padding-top:16px;border-top:1px solid var(--border)}
+.field{margin-bottom:14px}
+.field-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#1A1D23;color:#fff;padding:10px 18px;border-radius:99px;font-size:13px;font-weight:500;z-index:300;opacity:0;transition:opacity 0.2s;pointer-events:none;white-space:nowrap}
+.toast.show{opacity:1}
+.profile-row{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border);font-size:14px}
+.profile-row:last-child{border-bottom:none}
+.profile-key{color:var(--text2);font-weight:500;min-width:140px}
+.profile-val{color:var(--text);text-align:right;flex:1}
+.empty-state{text-align:center;padding:40px 20px;color:var(--text3)}
+.empty-icon{font-size:36px;margin-bottom:12px}
+.empty-title{font-size:15px;font-weight:600;color:var(--text2);margin-bottom:6px}
+.topbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px}
+.page-title{font-size:20px;font-weight:700;color:var(--text)}
+.page-sub{font-size:13px;color:var(--text3);margin-top:2px}
+hr{border:none;border-top:1px solid var(--border);margin:20px 0}
+.alert{padding:12px 14px;border-radius:var(--radius);font-size:13px;margin-bottom:16px;line-height:1.5}
+.alert-amber{background:var(--amber-light);color:var(--amber-dark);border:1px solid #EF9F27}
+.alert-red{background:var(--red-light);color:var(--red-dark);border:1px solid #F09595}
+.spinner{display:inline-block;width:16px;height:16px;border:2px solid var(--border);border-top-color:var(--teal);border-radius:50%;animation:spin 0.7s linear infinite;vertical-align:middle;margin-right:6px}
+@keyframes spin{to{transform:rotate(360deg)}}
+.loading{text-align:center;padding:30px;color:var(--text3);font-size:14px}
+.api-banner{background:var(--teal-light);border:1px solid var(--teal-mid);border-radius:var(--radius);padding:10px 14px;font-size:13px;color:var(--teal-dark);margin-bottom:16px;display:flex;align-items:center;gap:8px}
+@media(max-width:600px){.field-row{grid-template-columns:1fr}.nav-tab{padding:14px 10px;font-size:12px}}
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <div class="nav-inner">
+    <div class="nav-logo">
+      <div class="nav-logo-icon">🏥</div>
+      MediMate
+    </div>
+    <div class="nav-tabs">
+      <button class="nav-tab active" onclick="showPage('dashboard')">Dashboard</button>
+      <button class="nav-tab" onclick="showPage('medications')">Medications</button>
+      <button class="nav-tab" onclick="showPage('incidents')">Incidents</button>
+      <button class="nav-tab" onclick="showPage('shiftnotes')">Shift Notes</button>
+      <button class="nav-tab" onclick="showPage('clients')">Clients</button>
+    </div>
+  </div>
+</nav>
+
+<div id="page-dashboard" class="page active">
+  <div class="topbar">
+    <div>
+      <div class="page-title">Good <span id="greeting"></span> 👋</div>
+      <div class="page-sub" id="dash-date"></div>
+    </div>
+    <button class="btn btn-sm" onclick="showPage('shiftnotes');openShiftNoteModal()">+ Shift note</button>
+  </div>
+  <div class="api-banner">🔗 Connected to live backend — all data syncs across devices in real time</div>
+  <div class="stat-grid" id="dash-stats">
+    <div class="stat-card"><div class="stat-label">Doses today</div><div class="stat-val" id="stat-total"><span class="spinner"></span></div></div>
+    <div class="stat-card"><div class="stat-label">Given</div><div class="stat-val green" id="stat-given">—</div></div>
+    <div class="stat-card"><div class="stat-label">Remaining</div><div class="stat-val amber" id="stat-remaining">—</div></div>
+    <div class="stat-card"><div class="stat-label">Open incidents</div><div class="stat-val" id="stat-incidents">—</div></div>
+  </div>
+  <div class="section-title" style="margin-bottom:12px">Clients at a glance</div>
+  <div id="dash-clients"><div class="loading"><span class="spinner"></span>Loading clients...</div></div>
+</div>
+
+<div id="page-medications" class="page">
+  <div class="topbar">
+    <div>
+      <div class="page-title">Medications</div>
+      <div class="page-sub">Tap a time to log a dose</div>
+    </div>
+    <button class="btn btn-primary btn-sm" onclick="openAddMedModal()">+ Add medication</button>
+  </div>
+  <div class="client-grid" id="med-client-tabs"><div class="loading"><span class="spinner"></span>Loading...</div></div>
+  <div id="med-content"></div>
+</div>
+
+<div id="page-incidents" class="page">
+  <div class="topbar">
+    <div>
+      <div class="page-title">Incident Reports</div>
+      <div class="page-sub">Log and track all incidents</div>
+    </div>
+    <button class="btn btn-primary btn-sm" onclick="openIncidentModal()">+ New report</button>
+  </div>
+  <div id="incident-list"><div class="loading"><span class="spinner"></span>Loading...</div></div>
+</div>
+
+<div id="page-shiftnotes" class="page">
+  <div class="topbar">
+    <div>
+      <div class="page-title">Shift Notes</div>
+      <div class="page-sub">End-of-shift summaries per client</div>
+    </div>
+    <button class="btn btn-primary btn-sm" onclick="openShiftNoteModal()">+ Add note</button>
+  </div>
+  <div id="shift-list"><div class="loading"><span class="spinner"></span>Loading...</div></div>
+</div>
+
+<div id="page-clients" class="page">
+  <div class="topbar">
+    <div>
+      <div class="page-title">Client Profiles</div>
+      <div class="page-sub">Manage resident information</div>
+    </div>
+    <button class="btn btn-primary btn-sm" onclick="openEditClientModal(null)">+ Add client</button>
+  </div>
+  <div id="client-list"><div class="loading"><span class="spinner"></span>Loading...</div></div>
+</div>
+
+<!-- ADD/EDIT CLIENT -->
+<div class="modal-overlay" id="modal-client">
+  <div class="modal">
+    <div class="modal-title">👤 <span id="client-modal-title">Add client</span></div>
+    <input type="hidden" id="client-edit-id">
+    <div class="field-row">
+      <div class="field"><label>First name</label><input id="cl-first" placeholder="First name"></div>
+      <div class="field"><label>Last name</label><input id="cl-last" placeholder="Last name"></div>
+    </div>
+    <div class="field-row">
+      <div class="field"><label>Date of birth</label><input type="date" id="cl-dob"></div>
+      <div class="field"><label>Room number</label><input id="cl-room" placeholder="e.g. 1A"></div>
+    </div>
+    <div class="field"><label>Diagnoses</label><input id="cl-diagnoses" placeholder="e.g. Diabetes, Hypertension"></div>
+    <div class="field"><label>Allergies</label><input id="cl-allergies" placeholder="e.g. Penicillin, Sulfa drugs"></div>
+    <div class="field"><label>Emergency contact name</label><input id="cl-ec-name" placeholder="Contact name"></div>
+    <div class="field"><label>Emergency contact phone</label><input id="cl-ec-phone" placeholder="(555) 000-0000"></div>
+    <div class="field"><label>Primary physician</label><input id="cl-physician" placeholder="Dr. Name — (555) 000-0000"></div>
+    <div class="modal-footer">
+      <button class="btn" onclick="closeModal('modal-client')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveClient()">Save client</button>
+    </div>
+  </div>
+</div>
+
+<!-- ADD/EDIT MED -->
+<div class="modal-overlay" id="modal-med">
+  <div class="modal">
+    <div class="modal-title">💊 <span id="med-modal-title">Add medication</span></div>
+    <input type="hidden" id="med-edit-id">
+    <div class="field"><label>Client</label><select id="med-client-sel"></select></div>
+    <div class="field"><label>Medication name</label><input id="med-name" placeholder="e.g. Metformin"></div>
+    <div class="field-row">
+      <div class="field"><label>Dose</label><input id="med-dose" placeholder="e.g. 500mg"></div>
+      <div class="field"><label>Route</label>
+        <select id="med-route">
+          <option>Oral</option><option>Sublingual</option><option>Topical</option>
+          <option>Inhaled</option><option>Injection</option><option>Eye drops</option>
+          <option>Ear drops</option><option>Patch</option>
+        </select>
+      </div>
+    </div>
+    <div class="field"><label>Scheduled times (comma separated)</label><input id="med-times" placeholder="8:00 AM, 12:00 PM, 6:00 PM"></div>
+    <div class="field-row">
+      <div class="field"><label>Prescriber</label><input id="med-prescriber" placeholder="Dr. Smith"></div>
+      <div class="field"><label>Reason / diagnosis</label><input id="med-reason" placeholder="e.g. Diabetes"></div>
+    </div>
+    <div class="field"><label>Special instructions</label><input id="med-notes" placeholder="Give with food, monitor BP..."></div>
+    <div class="modal-footer">
+      <button class="btn" onclick="closeModal('modal-med')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveMed()">Save medication</button>
+    </div>
+  </div>
+</div>
+
+<!-- LOG DOSE -->
+<div class="modal-overlay" id="modal-dose">
+  <div class="modal">
+    <div class="modal-title">📋 Log dose</div>
+    <input type="hidden" id="dose-med-id">
+    <input type="hidden" id="dose-client-id">
+    <input type="hidden" id="dose-time">
+    <div id="dose-info" style="background:var(--teal-light);border-radius:var(--radius);padding:12px 14px;margin-bottom:16px;font-size:14px;color:var(--teal-dark);font-weight:500"></div>
+    <div class="field"><label>Status</label>
+      <select id="dose-status">
+        <option value="given">Given</option>
+        <option value="refused">Refused by client</option>
+        <option value="missed">Missed / not given</option>
+        <option value="held">Held — awaiting nurse</option>
+      </select>
+    </div>
+    <div class="field"><label>Administered by</label><input id="dose-by" placeholder="Your name"></div>
+    <div class="field"><label>Notes (optional)</label><textarea id="dose-notes" placeholder="Observations, client reaction, reason for refusal..."></textarea></div>
+    <div class="modal-footer">
+      <button class="btn" onclick="closeModal('modal-dose')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveDose()">Log dose</button>
+    </div>
+  </div>
+</div>
+
+<!-- INCIDENT -->
+<div class="modal-overlay" id="modal-incident">
+  <div class="modal">
+    <div class="modal-title">🚨 <span id="incident-modal-title">New incident report</span></div>
+    <input type="hidden" id="incident-edit-id">
+    <div class="field-row">
+      <div class="field"><label>Client involved</label><select id="inc-client"></select></div>
+      <div class="field"><label>Date &amp; time</label><input type="datetime-local" id="inc-datetime"></div>
+    </div>
+    <div class="field"><label>Incident type</label>
+      <select id="inc-type">
+        <option>Fall</option><option>Medication error</option><option>Behavioral incident</option>
+        <option>Injury</option><option>Medical emergency</option><option>Property damage</option>
+        <option>Elopement</option><option>Other</option>
+      </select>
+    </div>
+    <div class="field"><label>Description of what happened</label><textarea id="inc-desc" placeholder="Describe the incident in detail..."></textarea></div>
+    <div class="field"><label>Immediate action taken</label><textarea id="inc-action" placeholder="What was done immediately after..."></textarea></div>
+    <div class="field"><label>Reported by</label><input id="inc-by" placeholder="Your name"></div>
+    <div class="field"><label>Status</label>
+      <select id="inc-status"><option value="open">Open</option><option value="resolved">Resolved</option></select>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" onclick="closeModal('modal-incident')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveIncident()">Submit report</button>
+    </div>
+  </div>
+</div>
+
+<!-- SHIFT NOTE -->
+<div class="modal-overlay" id="modal-shift">
+  <div class="modal">
+    <div class="modal-title">📝 Add shift note</div>
+    <div class="field-row">
+      <div class="field"><label>Client</label><select id="shift-client"></select></div>
+      <div class="field"><label>Date</label><input type="date" id="shift-date"></div>
+    </div>
+    <div class="field"><label>Shift</label>
+      <select id="shift-type">
+        <option>Morning (6am–2pm)</option><option>Afternoon (2pm–10pm)</option><option>Night (10pm–6am)</option>
+      </select>
+    </div>
+    <div class="field-row">
+      <div class="field"><label>Mood</label>
+        <select id="shift-mood"><option>Good</option><option>Fair</option><option>Anxious</option><option>Agitated</option><option>Confused</option><option>Sad</option></select>
+      </div>
+      <div class="field"><label>Appetite</label>
+        <select id="shift-appetite"><option>Good — ate all meals</option><option>Fair — ate some</option><option>Poor — refused meals</option></select>
+      </div>
+    </div>
+    <div class="field"><label>Shift summary</label><textarea id="shift-notes" placeholder="Activities, behaviors, concerns..."></textarea></div>
+    <div class="field"><label>Written by</label><input id="shift-by" placeholder="Your name"></div>
+    <div class="modal-footer">
+      <button class="btn" onclick="closeModal('modal-shift')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveShiftNote()">Save note</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const API = 'http://127.0.0.1:8000';
+const COLORS = [
+  {bar:'#1D9E75',bg:'#E1F5EE',text:'#0F6E56'},
+  {bar:'#378ADD',bg:'#E6F1FB',text:'#185FA5'},
+  {bar:'#D85A30',bg:'#FAECE7',text:'#993C1D'},
+  {bar:'#7F77DD',bg:'#EEEDFE',text:'#534AB7'},
+  {bar:'#BA7517',bg:'#FAEEDA',text:'#854F0B'},
+];
+
+let clients=[], meds=[], doses=[], incidents=[], shiftNotes=[];
+let activeMedClient=null;
+
+function getColor(i){return COLORS[i%COLORS.length];}
+function initials(n){return n.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);}
+function todayStr(){return new Date().toISOString().slice(0,10);}
+function nowDTLocal(){const d=new Date();d.setMinutes(d.getMinutes()-d.getTimezoneOffset());return d.toISOString().slice(0,16);}
+function fmtDate(s){if(!s)return '';return new Date(s+'T00:00:00').toLocaleDateString([],{month:'short',day:'numeric',year:'numeric'});}
+function fmtDT(s){if(!s)return '';return new Date(s).toLocaleString([],{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'});}
+function clientName(id){const c=clients.find(x=>x.id===id);return c?c.first+' '+c.last:'Unknown';}
+
+function showToast(msg,type=''){
+  const t=document.getElementById('toast');
+  t.textContent=msg;
+  t.style.background=type==='error'?'#A32D2D':'#1A1D23';
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2800);
+}
+
+function closeModal(id){document.getElementById(id).classList.remove('open');}
+function openModal(id){document.getElementById(id).classList.add('open');}
+document.querySelectorAll('.modal-overlay').forEach(m=>{
+  m.addEventListener('click',e=>{if(e.target===m)m.classList.remove('open');});
+});
+
+async function api(method,path,body){
+  try{
+    const opts={method,headers:{'Content-Type':'application/json'}};
+    if(body) opts.body=JSON.stringify(body);
+    const res=await fetch(API+path,opts);
+    if(!res.ok){
+      const err=await res.json().catch(()=>({}));
+      throw new Error(err.detail||'Request failed');
+    }
+    return await res.json();
+  } catch(e){
+    if(e.message.includes('fetch')){
+      showToast('Cannot reach server — is Python running?','error');
+    } else {
+      showToast(e.message,'error');
+    }
+    throw e;
+  }
+}
+
+async function loadAll(){
+  try{
+    [clients,meds,doses,incidents,shiftNotes] = await Promise.all([
+      api('GET','/clients'),
+      api('GET','/medications'),
+      api('GET','/doses?date='+todayStr()),
+      api('GET','/incidents'),
+      api('GET','/shift-notes'),
+    ]);
+    if(clients.length>0 && !activeMedClient) activeMedClient=clients[0].id;
+  } catch(e){}
+}
+
+function showPage(id){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('page-'+id).classList.add('active');
+  const tabs=['dashboard','medications','incidents','shiftnotes','clients'];
+  document.querySelectorAll('.nav-tab')[tabs.indexOf(id)]?.classList.add('active');
+  if(id==='dashboard') renderDashboard();
+  if(id==='medications') renderMedPage();
+  if(id==='incidents') renderIncidents();
+  if(id==='shiftnotes') renderShiftNotes();
+  if(id==='clients') renderClientProfiles();
+}
+
+async function renderDashboard(){
+  const hr=new Date().getHours();
+  document.getElementById('greeting').textContent=hr<12?'morning':hr<17?'afternoon':'evening';
+  document.getElementById('dash-date').textContent=new Date().toLocaleDateString([],{weekday:'long',month:'long',day:'numeric',year:'numeric'});
+  await loadAll();
+  const totalDoses=meds.reduce((a,m)=>a+(m.times?.length||0),0);
+  const givenDoses=doses.filter(d=>d.status==='given').length;
+  const openInc=incidents.filter(i=>i.status==='open').length;
+  document.getElementById('stat-total').textContent=totalDoses;
+  document.getElementById('stat-given').textContent=givenDoses;
+  document.getElementById('stat-remaining').textContent=totalDoses-givenDoses;
+  const incEl=document.getElementById('stat-incidents');
+  incEl.textContent=openInc;
+  incEl.className='stat-val'+(openInc>0?' red':'');
+
+  document.getElementById('dash-clients').innerHTML = clients.length===0
+    ? '<div class="empty-state"><div class="empty-icon">👥</div><div class="empty-title">No clients yet</div><div class="empty-sub">Go to the Clients tab to add your first client.</div></div>'
+    : clients.map((c,i)=>{
+        const col=getColor(i);
+        const cMeds=meds.filter(m=>m.client_id===c.id);
+        const cTotal=cMeds.reduce((a,m)=>a+(m.times?.length||0),0);
+        const cGiven=doses.filter(d=>d.client_id===c.id&&d.status==='given').length;
+        const pct=cTotal?Math.round(cGiven/cTotal*100):0;
+        const nextMed=cMeds.flatMap(m=>(m.times||[]).filter(t=>!doses.find(d=>d.medication_id===m.id&&d.scheduled_time===t&&d.date===todayStr())).map(t=>({name:m.name,time:t}))).sort((a,b)=>a.time.localeCompare(b.time))[0];
+        return `<div class="card" style="cursor:pointer" onclick="showPage('medications');setMedClient('${c.id}')">
+          <div style="display:flex;align-items:center;gap:12px;margin-bottom:10px">
+            <div class="client-avatar" style="background:${col.bg};color:${col.text};width:40px;height:40px;font-size:15px">${initials(c.first+' '+c.last)}</div>
+            <div><div style="font-weight:600;font-size:15px">${c.first} ${c.last}</div><div style="font-size:12px;color:var(--text3)">Room ${c.room||'—'}</div></div>
+            <div style="margin-left:auto;text-align:right">
+              <div style="font-size:18px;font-weight:700;color:${pct===100?'var(--teal-dark)':'var(--text)'}">${pct}%</div>
+              <div style="font-size:11px;color:var(--text3)">${cGiven}/${cTotal} doses</div>
+            </div>
+          </div>
+          <div style="height:4px;background:var(--border);border-radius:99px;overflow:hidden">
+            <div style="height:100%;width:${pct}%;background:${pct===100?'var(--teal)':'var(--blue)'};border-radius:99px"></div>
+          </div>
+          ${nextMed?`<div style="font-size:12px;color:var(--text3);margin-top:8px">Next: ${nextMed.name} at ${nextMed.time}</div>`:`<div style="font-size:12px;color:var(--teal-dark);margin-top:8px">✓ All doses complete</div>`}
+        </div>`;
+      }).join('');
+}
+
+function setMedClient(id){activeMedClient=id;renderMedPage();}
+
+async function renderMedPage(){
+  if(!clients.length) await loadAll();
+  const tabs=document.getElementById('med-client-tabs');
+  tabs.innerHTML=clients.map((c,i)=>{
+    const col=getColor(i);
+    return `<div class="client-card${c.id===activeMedClient?' active':''}" onclick="setMedClient('${c.id}')">
+      <div class="client-avatar" style="background:${col.bg};color:${col.text}">${initials(c.first+' '+c.last)}</div>
+      <div class="client-name">${c.first}</div>
+      <div class="client-sub">Room ${c.room||'—'}</div>
+    </div>`;
+  }).join('')+(clients.length<8?'':'');
+
+  if(!activeMedClient){
+    document.getElementById('med-content').innerHTML='<div class="empty-state"><div class="empty-icon">👥</div><div class="empty-title">Add a client first</div></div>';
+    return;
+  }
+
+  const clientMeds=meds.filter(m=>m.client_id===activeMedClient);
+  const content=document.getElementById('med-content');
+
+  if(!clientMeds.length){
+    const c=clients.find(x=>x.id===activeMedClient);
+    content.innerHTML=`<div class="empty-state"><div class="empty-icon">💊</div><div class="empty-title">No medications for ${c?.first||'this client'}</div><div class="empty-sub">Add one using the button above.</div></div>`;
+    return;
+  }
+
+  const todayDoses=doses.filter(d=>d.client_id===activeMedClient&&d.date===todayStr());
+
+  function doseStatus(medId,time){
+    const d=todayDoses.find(d=>d.medication_id===medId&&d.scheduled_time===time);
+    return d?.status||'pending';
+  }
+
+  const icons={given:'✓',refused:'✕',missed:'—',held:'⏸',pending:'🕐'};
+
+  content.innerHTML=`<div>${clientMeds.map((m,i)=>{
+    const col=getColor(i);
+    return `<div class="med-card">
+      <div class="med-row">
+        <div class="med-color-bar" style="background:${col.bar}"></div>
+        <div class="med-info">
+          <div class="med-name">${m.name} <span style="font-weight:400;color:var(--text2);font-size:14px">${m.dose}</span></div>
+          <div class="med-detail">${m.route||''}${m.prescriber?' · '+m.prescriber:''}${m.reason?' · '+m.reason:''}${m.notes?' · <em>'+m.notes+'</em>':''}</div>
+          <div class="med-times">${(m.times||[]).map(t=>{
+            const s=doseStatus(m.id,t);
+            return `<button class="time-pill ${s==='pending'?'':s}" onclick="openDoseModal('${m.id}','${activeMedClient}','${t}','${m.name}','${m.dose}')">${icons[s]||'•'} ${t}</button>`;
+          }).join('')}</div>
+        </div>
+        <div class="med-actions">
+          <button class="btn-icon" onclick="openEditMedModal('${m.id}')" title="Edit">✏️</button>
+          <button class="btn-icon danger" onclick="deleteMed('${m.id}')" title="Delete">🗑️</button>
+        </div>
+      </div>
+    </div>`;
+  }).join('')}</div>
+  <hr>
+  <div class="section-head"><div class="section-title">Today's log</div></div>
+  ${buildLogTable(activeMedClient)}`;
+}
+
+function buildLogTable(clientId){
+  const entries=doses.filter(d=>d.client_id===clientId&&d.date===todayStr()).sort((a,b)=>(b.logged_at||'').localeCompare(a.logged_at||''));
+  if(!entries.length) return '<div class="empty-state" style="padding:20px"><div class="empty-sub">No doses logged yet. Tap a time pill above.</div></div>';
+  const statusClass={given:'badge-teal',refused:'badge-amber',missed:'badge-red',held:'badge-blue'};
+  return `<div style="overflow-x:auto"><table class="log-table"><thead><tr><th>Logged</th><th>Medication</th><th>Scheduled</th><th>Status</th><th>By</th><th>Notes</th></tr></thead><tbody>${
+    entries.map(e=>`<tr>
+      <td>${e.logged_at?new Date(e.logged_at).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}):''}</td>
+      <td>${meds.find(m=>m.id===e.medication_id)?.name||'—'} ${meds.find(m=>m.id===e.medication_id)?.dose||''}</td>
+      <td>${e.scheduled_time||''}</td>
+      <td><span class="badge ${statusClass[e.status]||'badge-gray'}">${e.status}</span></td>
+      <td>${e.given_by||''}</td>
+      <td style="color:var(--text2);max-width:160px">${e.notes||''}</td>
+    </tr>`).join('')
+  }</tbody></table></div>`;
+}
+
+function openDoseModal(medId,clientId,time,medName,dose){
+  document.getElementById('dose-med-id').value=medId;
+  document.getElementById('dose-client-id').value=clientId;
+  document.getElementById('dose-time').value=time;
+  document.getElementById('dose-info').textContent=`${medName} ${dose} — scheduled ${time}`;
+  const existing=doses.find(d=>d.medication_id===medId&&d.scheduled_time===time&&d.date===todayStr());
+  document.getElementById('dose-status').value=existing?.status||'given';
+  document.getElementById('dose-by').value=existing?.given_by||'';
+  document.getElementById('dose-notes').value=existing?.notes||'';
+  openModal('modal-dose');
+}
+
+async function saveDose(){
+  const body={
+    medication_id:document.getElementById('dose-med-id').value,
+    client_id:document.getElementById('dose-client-id').value,
+    scheduled_time:document.getElementById('dose-time').value,
+    status:document.getElementById('dose-status').value,
+    given_by:document.getElementById('dose-by').value.trim(),
+    notes:document.getElementById('dose-notes').value.trim(),
+    date:todayStr(),
+  };
+  try{
+    await api('POST','/doses',body);
+    doses=await api('GET','/doses?date='+todayStr());
+    closeModal('modal-dose');
+    showToast('Dose logged — '+body.status);
+    renderMedPage();
+  }catch(e){}
+}
+
+function populateClientSelects(){
+  const opts=clients.map(c=>`<option value="${c.id}">${c.first} ${c.last}</option>`).join('');
+  ['med-client-sel','inc-client','shift-client'].forEach(id=>{const el=document.getElementById(id);if(el)el.innerHTML=opts;});
+}
+
+function openAddMedModal(){
+  populateClientSelects();
+  document.getElementById('med-modal-title').textContent='Add medication';
+  document.getElementById('med-edit-id').value='';
+  document.getElementById('med-client-sel').value=activeMedClient||'';
+  ['med-name','med-dose','med-times','med-prescriber','med-reason','med-notes'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('med-route').value='Oral';
+  openModal('modal-med');
+}
+
+function openEditMedModal(id){
+  const m=meds.find(x=>x.id===id);
+  if(!m)return;
+  populateClientSelects();
+  document.getElementById('med-modal-title').textContent='Edit medication';
+  document.getElementById('med-edit-id').value=id;
+  document.getElementById('med-client-sel').value=m.client_id;
+  document.getElementById('med-name').value=m.name;
+  document.getElementById('med-dose').value=m.dose;
+  document.getElementById('med-route').value=m.route||'Oral';
+  document.getElementById('med-times').value=(m.times||[]).join(', ');
+  document.getElementById('med-prescriber').value=m.prescriber||'';
+  document.getElementById('med-reason').value=m.reason||'';
+  document.getElementById('med-notes').value=m.notes||'';
+  openModal('modal-med');
+}
+
+async function saveMed(){
+  const name=document.getElementById('med-name').value.trim();
+  const dose=document.getElementById('med-dose').value.trim();
+  const timesRaw=document.getElementById('med-times').value.trim();
+  if(!name||!dose||!timesRaw){showToast('Fill in name, dose and times','error');return;}
+  const body={
+    client_id:document.getElementById('med-client-sel').value,
+    name,dose,
+    route:document.getElementById('med-route').value,
+    times:timesRaw.split(',').map(t=>t.trim()).filter(Boolean),
+    prescriber:document.getElementById('med-prescriber').value.trim(),
+    reason:document.getElementById('med-reason').value.trim(),
+    notes:document.getElementById('med-notes').value.trim(),
+  };
+  const editId=document.getElementById('med-edit-id').value;
+  try{
+    if(editId) await api('PUT','/medications/'+editId,body);
+    else await api('POST','/medications',body);
+    meds=await api('GET','/medications');
+    closeModal('modal-med');
+    showToast(editId?'Medication updated':'Medication added');
+    renderMedPage();
+  }catch(e){}
+}
+
+async function deleteMed(id){
+  if(!confirm('Remove this medication?'))return;
+  try{
+    await api('DELETE','/medications/'+id);
+    meds=await api('GET','/medications');
+    showToast('Medication removed');
+    renderMedPage();
+  }catch(e){}
+}
+
+function openIncidentModal(editId){
+  populateClientSelects();
+  document.getElementById('incident-modal-title').textContent=editId?'Edit incident':'New incident report';
+  document.getElementById('incident-edit-id').value=editId||'';
+  if(editId){
+    const inc=incidents.find(i=>i.id===editId);
+    if(inc){
+      document.getElementById('inc-client').value=inc.client_id;
+      document.getElementById('inc-datetime').value=inc.incident_datetime;
+      document.getElementById('inc-type').value=inc.type;
+      document.getElementById('inc-desc').value=inc.description;
+      document.getElementById('inc-action').value=inc.action_taken||'';
+      document.getElementById('inc-by').value=inc.reported_by;
+      document.getElementById('inc-status').value=inc.status;
+    }
+  } else {
+    document.getElementById('inc-datetime').value=nowDTLocal();
+    ['inc-desc','inc-action','inc-by'].forEach(id=>document.getElementById(id).value='');
+    document.getElementById('inc-status').value='open';
+  }
+  openModal('modal-incident');
+}
+
+async function saveIncident(){
+  const desc=document.getElementById('inc-desc').value.trim();
+  const by=document.getElementById('inc-by').value.trim();
+  if(!desc||!by){showToast('Fill in description and your name','error');return;}
+  const body={
+    client_id:document.getElementById('inc-client').value,
+    incident_datetime:document.getElementById('inc-datetime').value,
+    type:document.getElementById('inc-type').value,
+    description:desc,
+    action_taken:document.getElementById('inc-action').value.trim(),
+    reported_by:by,
+    status:document.getElementById('inc-status').value,
+  };
+  const editId=document.getElementById('incident-edit-id').value;
+  try{
+    if(editId) await api('PUT','/incidents/'+editId,body);
+    else await api('POST','/incidents',body);
+    incidents=await api('GET','/incidents');
+    closeModal('modal-incident');
+    showToast('Incident report saved');
+    renderIncidents();
+  }catch(e){}
+}
+
+async function renderIncidents(){
+  if(!clients.length)await loadAll();
+  const el=document.getElementById('incident-list');
+  if(!incidents.length){
+    el.innerHTML='<div class="empty-state"><div class="empty-icon">✅</div><div class="empty-title">No incidents reported</div><div class="empty-sub">Use the button above to file a report.</div></div>';
+    return;
+  }
+  el.innerHTML=incidents.map(inc=>`
+    <div class="incident-card ${inc.status}">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px">
+        <div>
+          <div style="font-size:14px;font-weight:600">${inc.type} — ${clientName(inc.client_id)}</div>
+          <div style="font-size:12px;color:var(--text3);margin-top:3px">${fmtDT(inc.incident_datetime)} · Reported by ${inc.reported_by}</div>
+        </div>
+        <div style="display:flex;gap:6px;align-items:center;flex-shrink:0">
+          <span class="badge ${inc.status==='resolved'?'badge-teal':'badge-red'}">${inc.status}</span>
+          <button class="btn-icon" onclick="openIncidentModal('${inc.id}')">✏️</button>
+          <button class="btn-icon danger" onclick="deleteIncident('${inc.id}')">🗑️</button>
+        </div>
+      </div>
+      <div style="font-size:13px;color:var(--text2);margin-top:8px;line-height:1.5">${inc.description}</div>
+      ${inc.action_taken?`<div style="margin-top:8px;font-size:13px;color:var(--teal-dark);background:var(--teal-light);padding:8px 10px;border-radius:var(--radius)"><strong>Action taken:</strong> ${inc.action_taken}</div>`:''}
+    </div>`).join('');
+}
+
+async function deleteIncident(id){
+  if(!confirm('Delete this report?'))return;
+  try{
+    await api('DELETE','/incidents/'+id);
+    incidents=await api('GET','/incidents');
+    showToast('Report deleted');
+    renderIncidents();
+  }catch(e){}
+}
+
+function openShiftNoteModal(){
+  populateClientSelects();
+  document.getElementById('shift-date').value=todayStr();
+  const hr=new Date().getHours();
+  document.getElementById('shift-type').value=hr<14?'Morning (6am–2pm)':hr<22?'Afternoon (2pm–10pm)':'Night (10pm–6am)';
+  ['shift-notes','shift-by'].forEach(id=>document.getElementById(id).value='');
+  openModal('modal-shift');
+}
+
+async function saveShiftNote(){
+  const notes=document.getElementById('shift-notes').value.trim();
+  const by=document.getElementById('shift-by').value.trim();
+  if(!notes||!by){showToast('Fill in notes and your name','error');return;}
+  const body={
+    client_id:document.getElementById('shift-client').value,
+    date:document.getElementById('shift-date').value,
+    shift:document.getElementById('shift-type').value,
+    mood:document.getElementById('shift-mood').value,
+    appetite:document.getElementById('shift-appetite').value,
+    notes,written_by:by,
+  };
+  try{
+    await api('POST','/shift-notes',body);
+    shiftNotes=await api('GET','/shift-notes');
+    closeModal('modal-shift');
+    showToast('Shift note saved');
+    renderShiftNotes();
+  }catch(e){}
+}
+
+async function renderShiftNotes(){
+  if(!clients.length)await loadAll();
+  const el=document.getElementById('shift-list');
+  if(!shiftNotes.length){
+    el.innerHTML='<div class="empty-state"><div class="empty-icon">📝</div><div class="empty-title">No shift notes yet</div><div class="empty-sub">Add end-of-shift summaries for each client.</div></div>';
+    return;
+  }
+  el.innerHTML=shiftNotes.map(n=>`
+    <div class="note-card">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+        <div>
+          <div style="font-weight:600;font-size:14px">${clientName(n.client_id)}</div>
+          <div class="note-meta">${fmtDate(n.date)} · ${n.shift} · By ${n.written_by}</div>
+        </div>
+        <div style="display:flex;gap:6px;align-items:center">
+          <span class="badge badge-gray">${n.mood}</span>
+          <span class="badge badge-blue">${n.appetite?.split('—')[0].trim()}</span>
+          <button class="btn-icon danger" onclick="deleteNote('${n.id}')">🗑️</button>
+        </div>
+      </div>
+      <div style="font-size:14px;color:var(--text);line-height:1.6">${n.notes}</div>
+    </div>`).join('');
+}
+
+async function deleteNote(id){
+  if(!confirm('Delete this note?'))return;
+  try{
+    await api('DELETE','/shift-notes/'+id);
+    shiftNotes=await api('GET','/shift-notes');
+    showToast('Note deleted');
+    renderShiftNotes();
+  }catch(e){}
+}
+
+function openEditClientModal(id){
+  document.getElementById('client-modal-title').textContent=id?'Edit client':'Add client';
+  document.getElementById('client-edit-id').value=id||'';
+  if(id){
+    const c=clients.find(x=>x.id===id);
+    if(c){
+      document.getElementById('cl-first').value=c.first;
+      document.getElementById('cl-last').value=c.last;
+      document.getElementById('cl-dob').value=c.dob||'';
+      document.getElementById('cl-room').value=c.room||'';
+      document.getElementById('cl-diagnoses').value=c.diagnoses||'';
+      document.getElementById('cl-allergies').value=c.allergies||'';
+      document.getElementById('cl-ec-name').value=c.ec_name||'';
+      document.getElementById('cl-ec-phone').value=c.ec_phone||'';
+      document.getElementById('cl-physician').value=c.physician||'';
+    }
+  } else {
+    ['cl-first','cl-last','cl-dob','cl-room','cl-diagnoses','cl-allergies','cl-ec-name','cl-ec-phone','cl-physician'].forEach(id=>document.getElementById(id).value='');
+  }
+  openModal('modal-client');
+}
+
+async function saveClient(){
+  const first=document.getElementById('cl-first').value.trim();
+  const last=document.getElementById('cl-last').value.trim();
+  if(!first||!last){showToast('Enter first and last name','error');return;}
+  const body={
+    first,last,
+    dob:document.getElementById('cl-dob').value,
+    room:document.getElementById('cl-room').value.trim(),
+    diagnoses:document.getElementById('cl-diagnoses').value.trim(),
+    allergies:document.getElementById('cl-allergies').value.trim(),
+    ec_name:document.getElementById('cl-ec-name').value.trim(),
+    ec_phone:document.getElementById('cl-ec-phone').value.trim(),
+    physician:document.getElementById('cl-physician').value.trim(),
+  };
+  const editId=document.getElementById('client-edit-id').value;
+  try{
+    if(editId) await api('PUT','/clients/'+editId,body);
+    else await api('POST','/clients',body);
+    clients=await api('GET','/clients');
+    if(!activeMedClient&&clients.length) activeMedClient=clients[0].id;
+    closeModal('modal-client');
+    showToast(editId?'Client updated':'Client added');
+    renderClientProfiles();
+    populateClientSelects();
+  }catch(e){}
+}
+
+async function renderClientProfiles(){
+  if(!clients.length)await loadAll();
+  const el=document.getElementById('client-list');
+  if(!clients.length){
+    el.innerHTML='<div class="empty-state"><div class="empty-icon">👥</div><div class="empty-title">No clients yet</div><div class="empty-sub">Add your first client using the button above.</div></div>';
+    return;
+  }
+  el.innerHTML=clients.map((c,i)=>{
+    const col=getColor(i);
+    const age=c.dob?Math.floor((new Date()-new Date(c.dob+'T00:00:00'))/31557600000):null;
+    const mCount=meds.filter(m=>m.client_id===c.id).length;
+    return `<div class="card">
+      <div style="display:flex;align-items:center;gap:14px;margin-bottom:14px">
+        <div class="client-avatar" style="background:${col.bg};color:${col.text};width:52px;height:52px;font-size:20px">${initials(c.first+' '+c.last)}</div>
+        <div style="flex:1">
+          <div style="font-size:17px;font-weight:700">${c.first} ${c.last}</div>
+          <div style="font-size:13px;color:var(--text3)">Room ${c.room||'—'}${age?' · Age '+age:''} · ${mCount} medication${mCount!==1?'s':''}</div>
+        </div>
+        <button class="btn btn-sm" onclick="openEditClientModal('${c.id}')">Edit</button>
+      </div>
+      ${c.allergies&&c.allergies.toLowerCase()!=='none known'?`<div class="alert alert-amber">⚠️ Allergies: ${c.allergies}</div>`:''}
+      <div class="profile-row"><span class="profile-key">Diagnoses</span><span class="profile-val">${c.diagnoses||'—'}</span></div>
+      <div class="profile-row"><span class="profile-key">Allergies</span><span class="profile-val">${c.allergies||'—'}</span></div>
+      <div class="profile-row"><span class="profile-key">Emergency contact</span><span class="profile-val">${c.ec_name||'—'}${c.ec_phone?' · '+c.ec_phone:''}</span></div>
+      <div class="profile-row"><span class="profile-key">Physician</span><span class="profile-val">${c.physician||'—'}</span></div>
+    </div>`;
+  }).join('');
+}
+
+const hr=new Date().getHours();
+document.getElementById('greeting').textContent=hr<12?'morning':hr<17?'afternoon':'evening';
+document.getElementById('dash-date').textContent=new Date().toLocaleDateString([],{weekday:'long',month:'long',day:'numeric',year:'numeric'});
+loadAll().then(()=>renderDashboard());
+</script>
+</body>
+</html>
